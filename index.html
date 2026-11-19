@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Carlo &amp; Johaira · Photo Booth</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600&family=Playfair+Display:ital,wght@1,500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+:root{--bg:#f6f1ea;--fg:#2d2420;--card:#fff;--mut:#7a6d64;--gold:#d4af7a;--ink:#3a2e2a;--ivory:#fff8f0;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#17120f;--fg:#f3ebe4;--card:#241d19;--mut:#a89a8f}}
+:root[data-theme="dark"]{--bg:#17120f;--fg:#f3ebe4;--card:#241d19;--mut:#a89a8f}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+#app{max-width:480px;margin:0 auto;padding:16px}
+h1{font-size:18px;margin:0 0 4px}
+.note{font-size:13px;color:var(--mut);margin:0 0 12px}
+#stage{position:relative;aspect-ratio:3/4;background:#000;border-radius:18px;overflow:hidden;color:var(--ivory)}
+#vid,#sim{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+#vid.mirror{transform:scaleX(-1)}
+.serif{font-family:"Playfair Display",Georgia,serif;font-style:italic;font-weight:500}
+button{font:inherit;border:0;border-radius:999px;cursor:pointer}
+#home{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;padding:32px 20px 22px;text-align:center;background:linear-gradient(#0009,#0003 45%,#000c)}
+.script{font-family:"Dancing Script","Segoe Script","Brush Script MT",cursive;font-weight:600}
+.names{font-size:clamp(42px,12vw,56px);line-height:1.1;text-shadow:0 2px 14px #0009}
+.date{color:var(--gold);letter-spacing:.28em;font-size:13px;margin-top:8px}
+.tag{margin-top:14px;font-size:14px;color:#ffffffd0}
+.msgcard{background:#0008;border:1px solid #d4af7a99;border-radius:24px;padding:12px 22px 16px;transition:opacity .9s}
+.msgcard.fade{opacity:0}
+#notetxt{font-size:19px;line-height:1.45}
+.q{color:var(--gold);font-size:44px;line-height:.9;height:24px}
+.sig{color:var(--ivory);font-size:32px;line-height:1.1;margin-top:2px}
+.eyebrow{color:var(--gold);letter-spacing:.35em;font-size:11px;margin-bottom:6px}
+.amp{color:var(--gold);font-size:.8em}
+.orn{display:flex;align-items:center;justify-content:center;gap:10px;color:var(--gold);font-size:9px;margin:10px 0 6px}
+.orn i{display:block;width:56px;height:1px;background:var(--gold)}
+.cta{width:100%;height:64px;background:var(--gold);color:var(--ink);font-size:18px;font-weight:700;animation:pulse 1.8s ease-in-out infinite}
+@keyframes pulse{50%{transform:scale(1.04)}}
+.ghost{width:100%;height:54px;margin-top:12px;background:transparent;border:2px solid var(--gold);color:var(--ivory);font-size:16px}
+.link{margin-top:6px;padding:10px;background:none;color:#ffffffcc;font-size:14px}
+#count{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:170px;text-shadow:0 4px 24px #000a;pointer-events:none}
+#shot{position:absolute;top:18px;left:50%;transform:translateX(-50%);white-space:pre-line;text-align:center;background:#0009;padding:8px 20px;border-radius:20px;font-size:16px}
+#rec{position:absolute;top:14px;left:14px;color:#ff5b5b;font-weight:700;background:#000a;padding:4px 10px;border-radius:999px}
+#stop{position:absolute;bottom:24px;left:50%;transform:translateX(-50%);height:56px;padding:0 28px;background:#d94f4f;color:#fff;font-size:17px}
+#badge{margin:8px 0 0;font-size:12px;color:var(--mut);text-align:center}
+#flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;transition:opacity .3s}
+#share{position:absolute;inset:0;background:#201a17f2;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;padding:16px}
+#share h2{margin:0;font-size:22px}
+#qr{background:var(--ivory);padding:12px;border-radius:16px;line-height:0}
+#url{font-size:11px;color:#bbafa6;word-break:break-all}
+#done{height:44px;padding:0 30px;background:var(--gold);color:var(--ink);font-weight:700;margin-top:4px}
+h3{font-size:15px;margin:20px 0 8px}
+#gal{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.item{background:var(--card);border-radius:12px;overflow:hidden}
+.item.star{grid-column:span 2;border:2px solid var(--gold)}
+.item img,.item video{display:block;width:100%;aspect-ratio:3/4;object-fit:cover}
+.item.star img{aspect-ratio:auto;max-height:420px;object-fit:contain;background:#fff8f0}
+.item small{display:block;padding:6px 8px;font-size:11px;color:var(--mut);word-break:break-all}
+@media (max-width:600px){#app{padding:0;max-width:none}#stage{aspect-ratio:auto;height:100dvh;border-radius:0}h3,#gal,#badge{padding:0 12px}}
+</style>
+</head>
+<body>
+<div id="app">
+  
+  
+
+  <div id="stage">
+    <video id="vid" playsinline muted autoplay></video>
+    <canvas id="sim" width="720" height="960"></canvas>
+    <div id="flash"></div>
+    <div id="count" class="serif"></div>
+    <div id="shot" hidden></div>
+    <div id="rec" hidden>● REC <span id="t">0s</span></div>
+    <button id="stop" hidden>■ Stop recording</button>
+
+    <div id="home">
+      <div>
+        <div class="eyebrow">THE WEDDING OF</div>
+        <div class="names script">Carlo <span class="amp">&amp;</span> Johaira</div>
+        <div class="orn"><i></i>◆<i></i></div>
+        <div class="date">MAY 18, 2026</div>
+      </div>
+      <div id="note" class="msgcard">
+        <div class="q serif">“</div>
+        <div id="notetxt" class="serif"></div>
+        <div class="orn"><i></i>◆<i></i></div>
+        <div class="sig script">Carlo <span class="amp">&amp;</span> Johaira</div>
+      </div>
+      <div>
+        <button id="strip" class="cta">📸 Photo Strip · 3 shots</button>
+        <button id="video" class="cta" style="margin-top:12px">🎥 Leave a Video Message</button>
+        <button id="flip" class="link">🔄 Flip camera</button>
+        <button id="folder" class="link" hidden>📁 Choose save folder</button>
+      </div>
+    </div>
+
+    <div id="share" hidden>
+      <h2 class="serif">Thank you for celebrating with us</h2>
+      <div class="script" style="font-size:40px;line-height:1.1">Carlo <span class="amp">&amp;</span> Johaira</div>
+      <div class="date" style="margin:0">MAY 18, 2026</div>
+      <div id="qr"></div>
+      <div id="msg" style="font-size:18px"></div>
+      
+      <div id="url"></div>
+      <button id="done">Done</button>
+    </div>
+  </div>
+
+  <div id="badge"></div>
+
+  <h3>Files saved on the device: <span id="n">0</span></h3>
+  <div id="gal"></div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const COUPLE = 'Carlo & Johaira', DATE = 'May 18, 2026', CELL = 900, PAD = 40, COUNTDOWN = 10, VIDEO_SECONDS = 30, SHARE_SECONDS = 90,
+  UPLOAD_URL = '', UPLOAD_KEY = ''; // paste your Google Apps Script web app URL and secret (see drive-upload.gs)
+let dirHandle = null, shareBlob = null, shareName = '', sessionFiles = [];
+const vid = $('vid'), sim = $('sim'), sctx = sim.getContext('2d');
+let stream = null, front = true, simOn = false, counting = false, recorder = null, sharing = false, shareTimer = null, saved = 0;
+
+function drawSim(t = 0) {
+  if (!simOn) return;
+  const g = sctx.createLinearGradient(0, 0, 720, 960);
+  g.addColorStop(0, '#5b2a52'); g.addColorStop(1, '#b07a4a');
+  sctx.fillStyle = g; sctx.fillRect(0, 0, 720, 960);
+  sctx.fillStyle = '#ffe3b0'; sctx.beginPath();
+  sctx.arc(360 + Math.sin(t / 700) * 220, 480 + Math.cos(t / 900) * 260, 70, 0, 7); sctx.fill();
+  requestAnimationFrame(drawSim);
+}
+
+async function startCam() {
+  if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+  const video = { facingMode: front ? 'user' : 'environment', width: 720, height: 960 };
+  for (const c of [{ video, audio: true }, { video, audio: false }]) {
+    try { stream = await navigator.mediaDevices.getUserMedia(c); break; } catch (e) {}
+  }
+  if (stream) {
+    simOn = false; vid.srcObject = stream; vid.classList.toggle('mirror', front);
+    vid.style.display = 'block'; sim.style.display = 'none';
+    $('badge').textContent = (front ? 'Front' : 'Back') + ' camera live';
+  } else {
+    vid.style.display = 'none'; sim.style.display = 'block';
+    if (!simOn) { simOn = true; drawSim(); }
+    $('badge').textContent = 'Camera blocked. Open this page from an https link and allow camera access. Showing a demo feed.';
+  }
+}
+
+function update() {
+  $('home').hidden = counting || !!recorder || sharing;
+  $('stop').hidden = !recorder;
+}
+
+function grab() {
+  const c = document.createElement('canvas');
+  if (stream) {
+    c.width = vid.videoWidth || 720; c.height = vid.videoHeight || 960;
+    const x = c.getContext('2d');
+    if (front) { x.translate(c.width, 0); x.scale(-1, 1); }
+    x.drawImage(vid, 0, 0, c.width, c.height);
+  } else {
+    c.width = 720; c.height = 960; c.getContext('2d').drawImage(sim, 0, 0);
+  }
+  return c;
+}
+const toBlob = c => new Promise(r => c.toBlob(r, 'image/jpeg', 0.92));
+
+function collage(shots) {
+  const footer = 280, w = CELL + PAD * 2, h = PAD + shots.length * (CELL + PAD) + footer;
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  const x = c.getContext('2d');
+  x.fillStyle = '#fff8f0'; x.fillRect(0, 0, w, h);
+  shots.forEach((s, i) => {
+    const side = Math.min(s.width, s.height), top = PAD + i * (CELL + PAD);
+    x.fillStyle = '#d4af7a'; x.fillRect(PAD - 8, top - 8, CELL + 16, CELL + 16);
+    x.drawImage(s, (s.width - side) / 2, (s.height - side) / 2, side, side, PAD, top, CELL, CELL);
+  });
+  x.textAlign = 'center'; x.fillStyle = '#3a2e2a';
+  x.font = 'italic 500 84px "Playfair Display",Georgia,serif';
+  x.fillText(COUPLE, w / 2, h - footer + 130);
+  x.fillStyle = '#b08a4f'; x.font = '44px Georgia,serif';
+  if ('letterSpacing' in x) x.letterSpacing = '6px';
+  x.fillText(DATE, w / 2, h - footer + 210);
+  return c;
+}
+
+async function takeStrip() {
+  counting = true; update();
+  const sid = Date.now(), shots = []; sessionFiles = [];
+  for (let n = 1; n <= 3; n++) {
+    $('shot').hidden = false;
+    $('shot').textContent = 'Photo ' + n + ' of 3\n' + '●'.repeat(n) + '○'.repeat(3 - n);
+    for (let i = COUNTDOWN; i > 0; i--) { $('count').textContent = i; await sleep(1000); }
+    $('count').textContent = '';
+    const c = grab(); shots.push(c);
+    $('flash').style.opacity = 0.9; setTimeout(() => $('flash').style.opacity = 0, 120);
+    addItem(await toBlob(c), 'booth_' + sid + '_' + n + '.jpg', 'photo');
+    await sleep(700);
+  }
+  $('shot').hidden = true;
+  try { await document.fonts.load('italic 500 84px "Playfair Display"'); } catch (e) {}
+  addItem(await toBlob(collage(shots)), 'booth_' + sid + '_collage.jpg', 'photo', true);
+  counting = false; showShare('photo strip');
+}
+
+function toggleVideo() {
+  if (recorder) { recorder.stop(); return; }
+  // draw camera + names/date onto a canvas and record that, so the video carries the branding
+  const rc = document.createElement('canvas'); rc.width = 720; rc.height = 960;
+  const rx = rc.getContext('2d'); let raf;
+  const loop = () => {
+    const g = grab(), s = Math.max(720 / g.width, 960 / g.height), dw = g.width * s, dh = g.height * s;
+    rx.drawImage(g, (720 - dw) / 2, (960 - dh) / 2, dw, dh);
+    const gr = rx.createLinearGradient(0, 750, 0, 960);
+    gr.addColorStop(0, 'rgba(0,0,0,0)'); gr.addColorStop(1, 'rgba(0,0,0,.7)');
+    rx.fillStyle = gr; rx.fillRect(0, 750, 720, 210);
+    rx.textAlign = 'center'; rx.fillStyle = '#fff8f0';
+    rx.font = 'italic 500 54px "Playfair Display",Georgia,serif'; rx.fillText(COUPLE, 360, 864);
+    rx.fillStyle = '#d4af7a'; rx.font = '27px Georgia,serif'; rx.fillText(DATE, 360, 907);
+    raf = requestAnimationFrame(loop);
+  };
+  loop();
+  const src = rc.captureStream(30);
+  if (stream) stream.getAudioTracks().forEach(t => src.addTrack(t));
+  const mime = ['video/webm;codecs=vp9,opus', 'video/webm', 'video/mp4'].find(m => window.MediaRecorder && MediaRecorder.isTypeSupported(m)) || '';
+  const chunks = []; let r;
+  try { r = new MediaRecorder(src, mime ? { mimeType: mime } : undefined); }
+  catch (e) { alert('Video recording is not supported in this browser.'); return; }
+  recorder = r;
+  r.ondataavailable = e => e.data.size && chunks.push(e.data);
+  const t0 = Date.now();
+  const tick = setInterval(() => $('t').textContent = Math.floor((Date.now() - t0) / 1000) + 's', 250);
+  const auto = setTimeout(() => r.state !== 'inactive' && r.stop(), VIDEO_SECONDS * 1000);
+  r.onstop = () => {
+    clearInterval(tick); clearTimeout(auto); cancelAnimationFrame(raf); recorder = null; $('rec').hidden = true;
+    addItem(new Blob(chunks, { type: r.mimeType || 'video/webm' }), 'booth_' + Date.now() + '.webm', 'video');
+    showShare('video');
+  };
+  r.start(); $('rec').hidden = false; update();
+}
+
+const toB64 = blob => new Promise(r => { const f = new FileReader(); f.onload = () => r(f.result.split(',')[1]); f.readAsDataURL(blob); });
+async function driveUpload(blob, name) {
+  const body = JSON.stringify({ key: UPLOAD_KEY, name, mime: blob.type || 'application/octet-stream', data: await toB64(blob) });
+  const res = await fetch(UPLOAD_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body });
+  return (await res.text()).trim();
+}
+
+async function persist(blob, name) {
+  try {
+    if (dirHandle) {
+      const f = await dirHandle.getFileHandle(name, { create: true });
+      const w = await f.createWritable(); await w.write(blob); await w.close();
+    } else {
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name;
+      document.body.appendChild(a); a.click(); a.remove();
+    }
+  } catch (e) {}
+}
+
+function addItem(blob, name, kind, star) {
+  persist(blob, name);
+  if (star || kind === 'video') { shareBlob = blob; shareName = name; }
+  else if (kind === 'photo') sessionFiles.push({ blob, name });
+  const url = URL.createObjectURL(blob);
+  const el = document.createElement('div'); el.className = 'item' + (star ? ' star' : '');
+  el.innerHTML = kind === 'photo' ? '<img src="' + url + '" alt="">' : '<video src="' + url + '" controls playsinline></video>';
+  const cap = document.createElement('small');
+  cap.textContent = (star ? '★ Shared via QR · ' : '') + (kind === 'photo' ? 'Pictures' : 'Movies') + '/PhotoBooth/' + name;
+  el.appendChild(cap);
+  if (star) $('gal').prepend(el); else $('gal').appendChild(el);
+  $('n').textContent = ++saved;
+}
+
+async function showShare(label) {
+  sharing = true; update();
+  $('qr').innerHTML = ''; $('url').textContent = '';
+  $('msg').textContent = 'Saved! Thank you ♥';
+  $('share').hidden = false;
+  clearTimeout(shareTimer); shareTimer = setTimeout(hideShare, SHARE_SECONDS * 1000);
+  if (!UPLOAD_URL || !shareBlob) return;
+  $('msg').textContent = 'Preparing your link…';
+  try {
+    const link = await driveUpload(shareBlob, shareName);
+    if (!link.startsWith('http')) throw new Error(link);
+    $('msg').textContent = 'Scan to get your ' + label;
+    $('url').textContent = link;
+    new QRCode($('qr'), { text: link, width: 210, height: 210 });
+    const rest = sessionFiles; sessionFiles = []; // back up the 3 single photos to Drive too
+    for (const f of rest) { try { await driveUpload(f.blob, f.name); } catch (e) {} }
+  } catch (e) { $('msg').textContent = 'Saved! (link unavailable)'; }
+}
+function hideShare() { clearTimeout(shareTimer); $('share').hidden = true; sharing = false; update(); }
+
+$('strip').onclick = () => { kiosk(); takeStrip(); };
+$('video').onclick = () => { kiosk(); toggleVideo(); };
+$('stop').onclick = toggleVideo;
+$('flip').onclick = () => { front = !front; startCam(); };
+$('done').onclick = hideShare;
+if (window.showDirectoryPicker) $('folder').hidden = false;
+$('folder').onclick = async () => {
+  try { dirHandle = await showDirectoryPicker({ mode: 'readwrite' }); $('folder').textContent = '📁 Saving to: ' + dirHandle.name; } catch (e) {}
+};
+const kiosk = () => { document.documentElement.requestFullscreen?.().catch(() => {}); navigator.wakeLock?.request('screen').catch(() => {}); };
+const MESSAGES = [
+  'Welcome, and thank you for celebrating with us. Having you here makes our day complete.',
+  'Strike a pose, leave us a video message, and take a little piece of our day home with you.',
+  'This photobooth app was made by the groom and bride themselves, with love, just for you.'
+];
+let mi = 0;
+const showMsg = () => { $('notetxt').textContent = MESSAGES[mi]; };
+setInterval(() => {
+  if ($('home').hidden) return;
+  const n = $('note'); n.classList.add('fade');
+  setTimeout(() => { mi = (mi + 1) % MESSAGES.length; showMsg(); n.classList.remove('fade'); }, 900);
+}, 7000);
+showMsg();
+update(); startCam();
+</script>
+</body>
+</html>
